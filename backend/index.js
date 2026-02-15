@@ -19,12 +19,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ---------- FINAL SAFE CORS ----------
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:3000",
-  "https://expensestra.selvapandi.com",     // your live frontend
-  "https://expense-tracker-qksg.onrender.com" // render backend (self-ping)
-];
+// const allowedOrigins = [
+//   "http://localhost:5173",
+//   "http://localhost:3000",
+//   "http://localhost:4000",
+//   "https://expensestra.selvapandi.com"    // your live frontend
+//   // "https://api-expenses.selvapandi.com", // render backend (self-ping)
+//   // "https://expense-tracker-qksg.onrender.com" // render backend
+// ];
+
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? [
+        "https://expensestra.selvapandi.com",
+        // "https://api-expenses.selvapandi.com",
+        // "https://expense-tracker-qksg.onrender.com"
+      ]
+    : [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://localhost:4000",
+      ];
 
 app.use(
   cors({
@@ -53,7 +68,7 @@ app.use(
       "Pragma",
       "Expires",
     ],
-  })
+  }),
 );
 
 // preflight handle
@@ -69,12 +84,12 @@ app.use("/api/incomes", incomeRoutes);
 app.use("/api/reports", reportsRoutes);
 
 app.get("/", (req, res) =>
-  res.json({ ok: true, env: process.env.NODE_ENV || "dev" })
+  res.json({ ok: true, env: process.env.NODE_ENV || "dev" }),
 );
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
 });
 
 // ---------- Start ----------
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
