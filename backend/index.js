@@ -18,22 +18,12 @@ connectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ---------- FINAL SAFE CORS ----------
-// const allowedOrigins = [
-//   "http://localhost:5173",
-//   "http://localhost:3000",
-//   "http://localhost:4000",
-//   "https://expensestra.selvapandi.com"    // your live frontend
-//   // "https://api-expenses.selvapandi.com", // render backend (self-ping)
-//   // "https://expense-tracker-qksg.onrender.com" // render backend
-// ];
 
 const allowedOrigins =
   process.env.NODE_ENV === "production"
     ? [
         "https://expensestra.selvapandi.com",
         // "https://api-expenses.selvapandi.com",
-        // "https://expense-tracker-qksg.onrender.com"
       ]
     : [
         "http://localhost:5173",
