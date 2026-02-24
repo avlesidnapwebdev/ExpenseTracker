@@ -65,20 +65,28 @@ router.post("/register", upload.single("avatar"), async (req, res) => {
       verifyTokenExp: Date.now() + 24 * 60 * 60 * 1000,
     });
 
-    const link = `${process.env.CLIENT_URL}/verify/${verifyToken}`;
+    const webLink = `${process.env.CLIENT_URL}/verify/${verifyToken}`;
+    const mobileLink = `expensestracker://verify/${verifyToken}`;
 
     await sendMail(
-      email,
-      "Verify Your Expense Tracker Account",
-      `
-        <h2>Hi ${name}</h2>
-        <p>Please verify your email</p>
-        <a href="${link}"
-           style="padding:10px 20px;background:#6d28d9;color:white;border-radius:5px;text-decoration:none">
-          Verify Email
-        </a>
-      `
-    );
+  email,
+  "Verify Your Account",
+  `
+    <h2>Verify your email</h2>
+
+    <a href="${webLink}"
+      style="padding:10px 20px;background:#6d28d9;color:white;border-radius:5px;text-decoration:none">
+      Verify (Web)
+    </a>
+
+    <br/><br/>
+
+    <a href="${mobileLink}"
+      style="padding:10px 20px;background:#111;color:white;border-radius:5px;text-decoration:none">
+      Verify in Mobile App
+    </a>
+  `
+);
 
     res.json({ message: "Registered! Check email to verify." });
   } catch (err) {
@@ -125,13 +133,28 @@ router.post("/resend-verify", async (req, res) => {
     user.verifyTokenExp = Date.now() + 24 * 60 * 60 * 1000;
     await user.save();
 
-    const link = `${process.env.CLIENT_URL}/verify/${user.verifyToken}`;
+    const webLink = `${process.env.CLIENT_URL}/verify/${verifyToken}`;
+    const mobileLink = `expensestracker://verify/${verifyToken}`;
 
     await sendMail(
-      email,
-      "Verify Email",
-      `<a href="${link}">Verify Account</a>`
-    );
+  email,
+  "Verify Your Account",
+  `
+    <h2>Verify your email</h2>
+
+    <a href="${webLink}"
+      style="padding:10px 20px;background:#6d28d9;color:white;border-radius:5px;text-decoration:none">
+      Verify (Web)
+    </a>
+
+    <br/><br/>
+
+    <a href="${mobileLink}"
+      style="padding:10px 20px;background:#111;color:white;border-radius:5px;text-decoration:none">
+      Verify in Mobile App
+    </a>
+  `
+);
 
     res.json({ message: "Verification email sent" });
   } catch {
@@ -209,7 +232,7 @@ router.post("/forgot", async (req, res) => {
         <h2>Your OTP Code</h2>
         <h1 style="letter-spacing:3px">${otp}</h1>
         <p>Expires in <b>10 minutes</b>.</p>
-      `
+      `,
     );
 
     if (!sent) return res.status(500).json({ message: "Failed to send OTP" });

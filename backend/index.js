@@ -18,12 +18,10 @@ connectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 const allowedOrigins =
   process.env.NODE_ENV === "production"
     ? [
         "https://expensestra.selvapandi.com",
-        // "https://api-expenses.selvapandi.com",
       ]
     : [
         "http://localhost:5173",
