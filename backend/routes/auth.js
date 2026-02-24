@@ -69,24 +69,80 @@ router.post("/register", upload.single("avatar"), async (req, res) => {
     const mobileLink = `expensestracker://verify/${verifyToken}`;
 
     await sendMail(
-  email,
-  "Verify Your Account",
-  `
-    <h2>Verify your email</h2>
+      email,
+      "Verify Your Expense Tracker Account",
+      `
+  <div style="
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+  ">
 
-    <a href="${webLink}"
-      style="padding:10px 20px;background:#6d28d9;color:white;border-radius:5px;text-decoration:none">
-      Verify (Web)
-    </a>
+    <h2 style="color:#111827; text-align:center;">
+      Verify your email
+    </h2>
 
-    <br/><br/>
+    <p style="color:#374151; font-size:15px; text-align:center;">
+      Hi ${name},<br/><br/>
+      Please verify your account to continue using <b>Expense Tracker</b>.
+    </p>
 
-    <a href="${mobileLink}"
-      style="padding:10px 20px;background:#111;color:white;border-radius:5px;text-decoration:none">
-      Verify in Mobile App
-    </a>
-  `
-);
+    <!-- WEB BUTTON -->
+    <div style="margin-top:30px; text-align:center;">
+      <p style="margin-bottom:10px; color:#6b7280;">
+        Using Web Browser?
+      </p>
+
+      <a href="${webLink}"
+        style="
+          display:inline-block;
+          padding:12px 24px;
+          background:#6d28d9;
+          color:white;
+          text-decoration:none;
+          border-radius:8px;
+          font-weight:bold;
+        ">
+        Verify on Website
+      </a>
+    </div>
+
+    <!-- SPACE BETWEEN BUTTONS -->
+    <div style="height:30px;"></div>
+
+    <!-- MOBILE BUTTON -->
+    <div style="text-align:center;">
+      <p style="margin-bottom:10px; color:#6b7280;">
+        Using Mobile App?
+      </p>
+
+      <a href="${mobileLink}"
+        style="
+          display:inline-block;
+          padding:12px 24px;
+          background:#111827;
+          color:white;
+          text-decoration:none;
+          border-radius:8px;
+          font-weight:bold;
+        ">
+        Open in Mobile App
+      </a>
+    </div>
+
+    <hr style="margin:30px 0; border:none; border-top:1px solid #e5e7eb;" />
+
+    <p style="font-size:12px; color:#9ca3af; text-align:center;">
+      If you didn’t create this account, you can safely ignore this email.
+    </p>
+
+  </div>
+  `,
+    );
 
     res.json({ message: "Registered! Check email to verify." });
   } catch (err) {
@@ -137,24 +193,80 @@ router.post("/resend-verify", async (req, res) => {
     const mobileLink = `expensestracker://verify/${verifyToken}`;
 
     await sendMail(
-  email,
-  "Verify Your Account",
-  `
-    <h2>Verify your email</h2>
+      email,
+      "Verify Your Expense Tracker Account",
+      `
+  <div style="
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+  ">
 
-    <a href="${webLink}"
-      style="padding:10px 20px;background:#6d28d9;color:white;border-radius:5px;text-decoration:none">
-      Verify (Web)
-    </a>
+    <h2 style="color:#111827; text-align:center;">
+      Verify your email
+    </h2>
 
-    <br/><br/>
+    <p style="color:#374151; font-size:15px; text-align:center;">
+      Hi ${name},<br/><br/>
+      Please verify your account to continue using <b>Expense Tracker</b>.
+    </p>
 
-    <a href="${mobileLink}"
-      style="padding:10px 20px;background:#111;color:white;border-radius:5px;text-decoration:none">
-      Verify in Mobile App
-    </a>
-  `
-);
+    <!-- WEB BUTTON -->
+    <div style="margin-top:30px; text-align:center;">
+      <p style="margin-bottom:10px; color:#6b7280;">
+        Using Web Browser?
+      </p>
+
+      <a href="${webLink}"
+        style="
+          display:inline-block;
+          padding:12px 24px;
+          background:#6d28d9;
+          color:white;
+          text-decoration:none;
+          border-radius:8px;
+          font-weight:bold;
+        ">
+        Verify on Website
+      </a>
+    </div>
+
+    <!-- SPACE BETWEEN BUTTONS -->
+    <div style="height:30px;"></div>
+
+    <!-- MOBILE BUTTON -->
+    <div style="text-align:center;">
+      <p style="margin-bottom:10px; color:#6b7280;">
+        Using Mobile App?
+      </p>
+
+      <a href="${mobileLink}"
+        style="
+          display:inline-block;
+          padding:12px 24px;
+          background:#111827;
+          color:white;
+          text-decoration:none;
+          border-radius:8px;
+          font-weight:bold;
+        ">
+        Open in Mobile App
+      </a>
+    </div>
+
+    <hr style="margin:30px 0; border:none; border-top:1px solid #e5e7eb;" />
+
+    <p style="font-size:12px; color:#9ca3af; text-align:center;">
+      If you didn’t create this account, you can safely ignore this email.
+    </p>
+
+  </div>
+  `,
+    );
 
     res.json({ message: "Verification email sent" });
   } catch {
