@@ -33,6 +33,53 @@ const upload = multer({
 });
 
 /* =======================
+   EMAIL TEMPLATE
+======================= */
+const buildVerifyEmail = (name, webLink, mobileLink) => `
+<div style="
+font-family:Arial;
+max-width:600px;
+margin:auto;
+padding:20px;
+background:#f9fafb;
+border-radius:12px;
+border:1px solid #e5e7eb;
+">
+
+<h2 style="text-align:center;">Verify your email</h2>
+
+<p style="text-align:center;color:#374151;">
+Hi ${name},<br/><br/>
+Please verify your account to continue using Expense Tracker.
+</p>
+
+<div style="text-align:center;margin-top:30px;">
+<p>Using Web Browser?</p>
+<a href="${webLink}"
+style="display:inline-block;padding:12px 24px;background:#6d28d9;color:white;text-decoration:none;border-radius:8px;">
+Verify on Website
+</a>
+</div>
+
+<div style="height:30px;"></div>
+
+<div style="text-align:center;">
+<p>Using Mobile App?</p>
+<a href="${mobileLink}"
+style="display:inline-block;padding:12px 24px;background:#111827;color:white;text-decoration:none;border-radius:8px;">
+Open in Mobile App
+</a>
+</div>
+
+<hr style="margin:30px 0;" />
+
+<p style="font-size:12px;color:#9ca3af;text-align:center;">
+If you didn’t create this account, ignore this email.
+</p>
+</div>
+`;
+
+/* =======================
    REGISTER
 ======================= */
 router.post("/register", upload.single("avatar"), async (req, res) => {
@@ -49,10 +96,9 @@ router.post("/register", upload.single("avatar"), async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
 
     const hashed = await bcrypt.hash(password, 10);
+    const verifyToken = crypto.randomBytes(32).toString("hex");
 
     const avatar = req.file ? `${BASE_URL}/uploads/${req.file.filename}` : null;
-
-    const verifyToken = crypto.randomBytes(32).toString("hex");
 
     await User.create({
       name,
@@ -66,89 +112,30 @@ router.post("/register", upload.single("avatar"), async (req, res) => {
     });
 
     const webLink = `${process.env.CLIENT_URL}/verify/${verifyToken}`;
-    const mobileLink = `expensestracker://verify/${verifyToken}`;
+
+    const mobileLink = `${process.env.BACKEND_URL}/api/auth/mobile-verify/${verifyToken}`;
 
     await sendMail(
       email,
       "Verify Your Expense Tracker Account",
-      `
-  <div style="
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
-      background: #f9fafb;
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-  ">
-
-    <h2 style="color:#111827; text-align:center;">
-      Verify your email
-    </h2>
-
-    <p style="color:#374151; font-size:15px; text-align:center;">
-      Hi ${name},<br/><br/>
-      Please verify your account to continue using <b>Expense Tracker</b>.
-    </p>
-
-    <!-- WEB BUTTON -->
-    <div style="margin-top:30px; text-align:center;">
-      <p style="margin-bottom:10px; color:#6b7280;">
-        Using Web Browser?
-      </p>
-
-      <a href="${webLink}"
-        style="
-          display:inline-block;
-          padding:12px 24px;
-          background:#6d28d9;
-          color:white;
-          text-decoration:none;
-          border-radius:8px;
-          font-weight:bold;
-        ">
-        Verify on Website
-      </a>
-    </div>
-
-    <!-- SPACE BETWEEN BUTTONS -->
-    <div style="height:30px;"></div>
-
-    <!-- MOBILE BUTTON -->
-    <div style="text-align:center;">
-      <p style="margin-bottom:10px; color:#6b7280;">
-        Using Mobile App?
-      </p>
-
-      <a href="${mobileLink}"
-        style="
-          display:inline-block;
-          padding:12px 24px;
-          background:#111827;
-          color:white;
-          text-decoration:none;
-          border-radius:8px;
-          font-weight:bold;
-        ">
-        Open in Mobile App
-      </a>
-    </div>
-
-    <hr style="margin:30px 0; border:none; border-top:1px solid #e5e7eb;" />
-
-    <p style="font-size:12px; color:#9ca3af; text-align:center;">
-      If you didn’t create this account, you can safely ignore this email.
-    </p>
-
-  </div>
-  `,
+      buildVerifyEmail(name, webLink, mobileLink),
     );
 
-    res.json({ message: "Registered! Check email to verify." });
+    res.json({ message: "Registered! Check email." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
+});
+
+/* =======================
+   MOBILE VERIFY REDIRECT
+======================= */
+router.get("/mobile-verify/:token", (req, res) => {
+  const token = req.params.token;
+
+  // redirect into app
+  res.redirect(`expensestracker://verify/${token}`);
 });
 
 /* =======================
@@ -174,14 +161,16 @@ router.get("/verify/:token", async (req, res) => {
   }
 });
 
-/**************** RESEND VERIFY *****************/
+/* =======================
+   RESEND VERIFY
+======================= */
 router.post("/resend-verify", async (req, res) => {
   try {
     let { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email required" });
 
     const user = await User.findOne({ email });
-    if (!user) return res.json({ message: "Email sent if account exists" });
+    if (!user) return res.json({ message: "Email sent if exists" });
 
     if (user.emailVerified) return res.json({ message: "Already verified" });
 
@@ -189,83 +178,14 @@ router.post("/resend-verify", async (req, res) => {
     user.verifyTokenExp = Date.now() + 24 * 60 * 60 * 1000;
     await user.save();
 
-    const webLink = `${process.env.CLIENT_URL}/verify/${verifyToken}`;
-    const mobileLink = `expensestracker://verify/${verifyToken}`;
+    const webLink = `${process.env.CLIENT_URL}/verify/${user.verifyToken}`;
+
+    const mobileLink = `${process.env.BACKEND_URL}/api/auth/mobile-verify/${user.verifyToken}`;
 
     await sendMail(
       email,
       "Verify Your Expense Tracker Account",
-      `
-  <div style="
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
-      background: #f9fafb;
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-  ">
-
-    <h2 style="color:#111827; text-align:center;">
-      Verify your email
-    </h2>
-
-    <p style="color:#374151; font-size:15px; text-align:center;">
-      Hi ${name},<br/><br/>
-      Please verify your account to continue using <b>Expense Tracker</b>.
-    </p>
-
-    <!-- WEB BUTTON -->
-    <div style="margin-top:30px; text-align:center;">
-      <p style="margin-bottom:10px; color:#6b7280;">
-        Using Web Browser?
-      </p>
-
-      <a href="${webLink}"
-        style="
-          display:inline-block;
-          padding:12px 24px;
-          background:#6d28d9;
-          color:white;
-          text-decoration:none;
-          border-radius:8px;
-          font-weight:bold;
-        ">
-        Verify on Website
-      </a>
-    </div>
-
-    <!-- SPACE BETWEEN BUTTONS -->
-    <div style="height:30px;"></div>
-
-    <!-- MOBILE BUTTON -->
-    <div style="text-align:center;">
-      <p style="margin-bottom:10px; color:#6b7280;">
-        Using Mobile App?
-      </p>
-
-      <a href="${mobileLink}"
-        style="
-          display:inline-block;
-          padding:12px 24px;
-          background:#111827;
-          color:white;
-          text-decoration:none;
-          border-radius:8px;
-          font-weight:bold;
-        ">
-        Open in Mobile App
-      </a>
-    </div>
-
-    <hr style="margin:30px 0; border:none; border-top:1px solid #e5e7eb;" />
-
-    <p style="font-size:12px; color:#9ca3af; text-align:center;">
-      If you didn’t create this account, you can safely ignore this email.
-    </p>
-
-  </div>
-  `,
+      buildVerifyEmail(user.name, webLink, mobileLink),
     );
 
     res.json({ message: "Verification email sent" });
